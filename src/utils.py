@@ -5,18 +5,37 @@ import matplotlib.pyplot as plt
 import mpl_toolkits.axes_grid1
 
 def mkdirs(path):
-    try:
-        os.makedirs(path)
-    except FileExistsError:
-        pass
+    """Recursively create directories.
+
+    Simply calls os.makedirs with exist_ok=True.
+    """
+    os.makedirs(path, exist_ok=True)
 
 def weighted_var(a, w):
+    """Compute weighted variance."""
     V1 = np.sum(w)
     V2 = np.sum(w**2)
     return 1/(V1-V2/V1)*np.sum(w*(a-np.average(a, weights=w))**2)
 
 def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False, 
               bin_edges=None, weights=None):
+    """Bin array.
+
+    Required arguments:
+    array
+    x
+
+    Optional arguments:
+    x_min
+    x_max
+    n_bin
+    logspaced
+    bin_edges
+    weights
+
+    Returns:
+    Tuple (binned_array, mean_x, scatter)
+    """
     if bin_edges is None:
         if logspaced:
             bin_edges = np.logspace(np.log10(x_min), np.log10(x_max), n_bin+1, endpoint=True)
@@ -56,3 +75,23 @@ def condition_number(M):
     u, s, v = np.linalg.svd(M)
     return np.max(s)/np.min(s)
 
+def format_value_pm_error(val, err=None, precision=1, width=3):
+    # Get exponent of value
+    e = int(np.floor(np.log10(val)))
+    val_fmt = "{val:>{width}.{precision}f}"
+    err_fmt = "±{err:>{width}.{precision}f}"
+    if abs(e) > 1:
+        val = val/10**e
+        if err is not None:
+            err = err/10**e
+
+    s = val_fmt.format(val=val, width=width, precision=precision)
+    if err is not None:
+        s += err_fmt.format(err=err, width=width, precision=precision)
+    else:
+        s += " "*(width+1)
+        
+    if abs(e) > 1:
+        s += " 10^{exp:d}".format(exp=e)
+        
+    return s

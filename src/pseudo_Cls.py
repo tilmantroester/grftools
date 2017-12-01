@@ -39,12 +39,13 @@ def create_Gaussian_field(Cl, shape, box_size, mean=0):
     x_idx, y_idx = np.meshgrid(ell_x, ell_y, indexing="ij")
     ell_grid = np.sqrt((x_idx)**2 + (y_idx)**2)
     
-    Cl_grid = Cl(ell_grid)
-    if np.any(Cl_grid <= 0):
-        m_ft = np.zeros(ell_grid.shape, dtype=np.complex64)
-        m_ft[Cl_grid>0] = np.random.rayleigh(scale=np.sqrt((shape[0]/box_size[0])*(shape[1]/box_size[1])*shape[0]*shape[1]*Cl_grid[Cl_grid>0]/2))*np.exp(2j*pi*np.random.random(ell_grid.shape)[Cl_grid>0])
-    else:
-        m_ft = np.random.rayleigh(scale=np.sqrt((shape[0]/box_size[0])*(shape[1]/box_size[1])*shape[0]*shape[1]*Cl_grid/2))*np.exp(2j*pi*np.random.random(ell_grid.shape))
+    Cl_grid = np.zeros_like(ell_grid)
+    Cl_grid[ell_grid != 0] = Cl(ell_grid[ell_grid != 0])
+    #if np.any(Cl_grid <= 0):
+    #    m_ft = np.zeros(ell_grid.shape, dtype=np.complex64)
+    #    m_ft[Cl_grid>0] = np.random.rayleigh(scale=np.sqrt((shape[0]/box_size[0])*(shape[1]/box_size[1])*shape[0]*shape[1]*Cl_grid[Cl_grid>0]/2))*np.exp(2j*pi*np.random.random(ell_grid.shape)[Cl_grid>0])
+    #else:
+    m_ft = np.random.rayleigh(scale=np.sqrt((shape[0]/box_size[0])*(shape[1]/box_size[1])*shape[0]*shape[1]*Cl_grid/2))*np.exp(2j*pi*np.random.random(ell_grid.shape))
     m_ft[ell_grid == 0] = mean
     
     m = np.fft.irfft2(m_ft)
@@ -176,47 +177,52 @@ def process_map(m, processes, map_size, verbose=False):
                             (default "wrap).
         "zoom"              Resamples the map. Required field: "zoom_factor" 
                             (float).
-        "poisson_noise"
-        "scale"
+        "poisson_noise"     Add Poisson noise to the map. Required field: 
+                            "lambda" (float).
+        "scale"             Rescale the map by a constant. Required field:
+                            "normalization" (float).
     """
+    new_map = np.copy(m)
     new_map_size = map_size
     map_shape = m.shape
     pixel_size = map_size[0]/map_shape[0]
     for process in processes:
         # Set to constant
         if process["type"] == "set-const":
-            m = np.ones_like(m)*process["value"]
+            new_map = np.ones_like(m)*process["value"]
         # Crop
         if process["type"] == "crop":
-            m = m[process["slice"], process["slice"]]
-            if verbose: print("Cropping: {} -> {}".format(map_shape, m.shape))
-            map_shape = m.shape
-            new_map_size = pixel_size*m.shape[0], pixel_size*m.shape[1]
+            new_map = new_map[process["slice"], process["slice"]]
+            if verbose: print("Cropping: {} -> {}".format(map_shape, new_map.shape))
+            map_shape = new_map.shape
+            new_map_size = pixel_size*new_map.shape[0], pixel_size*new_map.shape[1]
         # Add Gaussian noise
         if process["type"] == "gaussian_noise":
             if verbose: print("Adding Gaussian noise.")
-            m += create_Gaussian_field(process["spectrum"], m.shape, map_size)
+            new_map += create_Gaussian_field(process["spectrum"], new_map.shape, map_size)
         # Smooth maps
         if process["type"] == "smoothing":
             mode = "wrap" if not "mode" in process else process["mode"]
-            m = scipy.ndimage.gaussian_filter(m, sigma=process["sigma"]/pixel_size, mode=mode)
+            new_map = scipy.ndimage.gaussian_filter(new_map, sigma=process["sigma"]/pixel_size, mode=mode)
             if verbose: print("Smoothing: sigma = {}, mode = {}.".format(process["sigma"], mode))
         # Downsample maps
         if process["type"] == "zoom":
-            m = utils.rebin_2d(m, (int(m.shape[0]*process["zoom_factor"]), int(m.shape[1]*process["zoom_factor"])))
-            if verbose: print("Zoom: {} -> {}".format(map_shape, m.shape))
-            map_shape = m.shape
+            new_map = utils.rebin_2d(new_map, 
+                                    (int(new_map.shape[0]*process["zoom_factor"]), 
+                                     int(new_map.shape[1]*process["zoom_factor"])))
+            if verbose: print("Zoom: {} -> {}".format(map_shape, new_map.shape))
+            map_shape = new_map.shape
             pixel_size /= process["zoom_factor"]
         #Add poisson noise
         if process["type"] == "poisson_noise":
             if verbose: print("Adding Poisson noise.")
-            m_min = np.min(m)
-            m = np.random.poisson((m-m_min)*process["lambda"], m.shape)
-            m = 1.0*m/process["lambda"] + m_min
+            m_min = np.min(new_map)
+            new_map = np.random.poisson((new_map-m_min)*process["lambda"], new_map.shape)
+            new_map = 1.0*new_map/process["lambda"] + m_min
         if process["type"] == "scale":
             if verbose: print("Rescale: noralization = {}".format(process["normalization"]))
-            m *= process["normalization"]
-    return m, new_map_size
+            new_map *= process["normalization"]
+    return new_map, new_map_size
 
 class Pseudo_Cl(object):
     def __init__(self, map1_paths, map2_paths, map_size, map_shape, n_LOS, 
