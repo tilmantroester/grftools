@@ -1,6 +1,7 @@
 import numpy as np
 import astropy
 import scipy.ndimage
+import astropy.io.fits
 
 import utils
 
@@ -289,7 +290,7 @@ class Pseudo_Cl(object):
                 if map1.shape != map2.shape or map1_size != map2_size:
                     raise RuntimeError("Map shapes or sizes do not match: shapes = {}, {}; sizes = {}, {}.".format(map1.shape, map2.shape, map1_size, map2_size))
                 
-            tmp_Cl, tmp_Cl_imag, self.mean_ell, self.ell_bin_centers, self.ell_bin_edges, tmp_Cl_scatter, tmp_Cl_imag_scatter = calculate_pseudo_C_ell(map1, map2, self.map_size, 
+            tmp_Cl, tmp_Cl_err, self.mean_ell, self.ell_bin_edges, _ = calculate_pseudo_Cl(map1, map2, self.map_size, 
                                                                                                                  self.n_bin_Cl, ell_min=self.ell_min, ell_max=self.ell_max, logspaced=self.logspaced_Cl)
             if self.n_bin_Cl == None:
                 self.n_bin_Cl = len(self.ell_bin_centers)
@@ -297,14 +298,10 @@ class Pseudo_Cl(object):
                 self.ell_max = self.ell_bin_edges[-1]
                 
             self.Cl.append(tmp_Cl)
-            self.Cl_scatter.append(tmp_Cl_scatter)
-            self.Cl_imag.append(tmp_Cl_imag)
-            self.Cl_imag_scatter.append(tmp_Cl_imag_scatter)
+            self.Cl_scatter.append(tmp_Cl_err)
 
         self.Cl = np.array(self.Cl)
         self.Cl_scatter = np.array(self.Cl_scatter)
-        self.Cl_imag = np.array(self.Cl_imag)
-        self.Cl_imag_scatter = np.array(self.Cl_imag_scatter)
         self.Cl_mean = np.mean(self.Cl, axis=0)
         self.Cl_error = np.sqrt(np.var(self.Cl, axis=0)/self.n_LOS)
         self.Cl_cov = np.cov(self.Cl.T)
