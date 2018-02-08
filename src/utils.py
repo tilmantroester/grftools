@@ -18,7 +18,7 @@ def weighted_var(a, w):
     return 1/(V1-V2/V1)*np.sum(w*(a-np.average(a, weights=w))**2)
 
 def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False, 
-              bin_edges=None, weights=None):
+              bin_edges=None, weights=None, return_variance=False):
     """Bin array.
 
     Required arguments:
@@ -52,9 +52,21 @@ def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False,
 
     for i in range(n_bin):
         M = np.logical_and(bin_edges[i] <= x, x < bin_edges[i+1])
-        binned_array[i] = np.average(array[M], weights=w[M])
-        scatter[i] = np.sqrt(weighted_var(array[M], w[M])/np.count_nonzero(M))
-        mean_x[i] = np.average(x[M], weights=w[M])
+        if np.count_nonzero(M) == 0:
+            # Empty bin
+            binned_array[i] = 0
+            scatter[i] = 0
+            if logspaced:
+                mean_x[i] = np.sqrt(bin_edges[i]*bin_edges[i+1])
+            else:
+                mean_x[i] = (bin_edges[i]+bin_edges[i+1])/2
+        else:
+            binned_array[i] = np.average(array[M], weights=w[M])
+            if return_variance:
+                scatter[i] = weighted_var(array[M], w[M])
+            else:
+                scatter[i] = np.sqrt(weighted_var(array[M], w[M])/np.count_nonzero(M))
+            mean_x[i] = np.average(x[M], weights=w[M])
 
     return binned_array, mean_x, scatter
 
