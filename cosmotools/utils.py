@@ -1,8 +1,6 @@
 
 import os
 import numpy as np
-import matplotlib.pyplot as plt
-import mpl_toolkits.axes_grid1
 
 def mkdirs(path):
     """Recursively create directories.
@@ -77,10 +75,6 @@ def rebin_2d(a, shape):
 def correlation_coefficient(cov):
     s = np.diag(1/np.sqrt(np.diag(cov)))
     return s @ cov @ s
-
-def subplot_colorbar(im, axes, **kwargs):
-    cax = mpl_toolkits.axes_grid1.make_axes_locatable(axes).append_axes("right", size = "5%", pad = 0.05)
-    plt.colorbar(im, cax=cax, **kwargs)
 
 
 def condition_number(M):

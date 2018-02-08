@@ -3,7 +3,7 @@ import astropy
 import scipy.ndimage
 import astropy.io.fits
 
-import utils
+from . import utils
 
 pi = np.pi
 
