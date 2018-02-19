@@ -1,2 +1,5 @@
-src/__pycache__/
+cosmotools/__pycache__/
+*.pyc
 test/.ipynb_checkpoints/
+
+cosmotools.egg-info
