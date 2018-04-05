@@ -15,7 +15,7 @@ def bin_C_ell(C_ell, ell, ell_1, ell_2, weighted=False):
     else:
         return np.mean(C_ell[mask]), np.mean(ell[mask]), np.var(C_ell[mask])/np.count_nonzero(mask)
 
-def create_Gaussian_field(Cl, shape, box_size, mean=0):
+def create_Gaussian_field(Cl, shape, box_size, mean=0.0):
     """Creates a random Gaussian fied.
 
     Required arguments:
@@ -40,14 +40,16 @@ def create_Gaussian_field(Cl, shape, box_size, mean=0):
     x_idx, y_idx = np.meshgrid(ell_x, ell_y, indexing="ij")
     ell_grid = np.sqrt((x_idx)**2 + (y_idx)**2)
     
-    Cl_grid = np.zeros_like(ell_grid)
-    Cl_grid[ell_grid != 0] = Cl(ell_grid[ell_grid != 0])
-    #if np.any(Cl_grid <= 0):
-    #    m_ft = np.zeros(ell_grid.shape, dtype=np.complex64)
-    #    m_ft[Cl_grid>0] = np.random.rayleigh(scale=np.sqrt((shape[0]/box_size[0])*(shape[1]/box_size[1])*shape[0]*shape[1]*Cl_grid[Cl_grid>0]/2))*np.exp(2j*pi*np.random.random(ell_grid.shape)[Cl_grid>0])
-    #else:
-    m_ft = np.random.rayleigh(scale=np.sqrt((shape[0]/box_size[0])*(shape[1]/box_size[1])*shape[0]*shape[1]*Cl_grid/2))*np.exp(2j*pi*np.random.random(ell_grid.shape))
-    m_ft[ell_grid == 0] = mean
+    Cl_grid = np.piecewise(ell_grid, [ell_grid != 0,], [Cl, 1])
+    if np.any(Cl_grid <= 0):
+       m_ft = np.zeros(ell_grid.shape, dtype=np.complex64)
+       m_ft[Cl_grid>0] = np.random.rayleigh(scale=np.sqrt((shape[0]/box_size[0])*(shape[1]/box_size[1])*shape[0]*shape[1]*Cl_grid[Cl_grid>0]/2))*np.exp(2j*pi*np.random.random(ell_grid.shape)[Cl_grid>0])
+    else:
+        m_ft = np.random.rayleigh(scale=np.sqrt((shape[0]/box_size[0])*(shape[1]/box_size[1])*shape[0]*shape[1]*Cl_grid/2))*np.exp(2j*pi*np.random.random(ell_grid.shape))
+    if mean == 0.0:
+        m_ft[ell_grid == 0] = 0.0
+    else:
+        m_ft[ell_grid == 0] = np.random.normal(scale=mean)
     
     m = np.fft.irfft2(m_ft)
     return m
