@@ -16,7 +16,7 @@ def weighted_var(a, w):
     return 1/(V1-V2/V1)*np.sum(w*(a-np.average(a, weights=w))**2)
 
 def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False, 
-              bin_edges=None, weights=None, return_variance=False):
+              bin_edges=None, weights=None, return_error_on_mean=True):
     """Bin array.
 
     Required arguments:
@@ -60,10 +60,11 @@ def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False,
                 mean_x[i] = (bin_edges[i]+bin_edges[i+1])/2
         else:
             binned_array[i] = np.average(array[M], weights=w[M])
-            if return_variance:
-                scatter[i] = weighted_var(array[M], w[M])
-            else:
+            if return_error_on_mean:
                 scatter[i] = np.sqrt(weighted_var(array[M], w[M])/np.count_nonzero(M))
+            else:
+                scatter[i] = np.sqrt(weighted_var(array[M], w[M]))
+
             mean_x[i] = np.average(x[M], weights=w[M])
 
     return binned_array, mean_x, scatter
