@@ -84,7 +84,7 @@ def condition_number(M):
 
 def format_value_pm_error(val, err=None, precision=1, width=3):
     # Get exponent of value
-    e = int(np.floor(np.log10(val)))
+    e = int(np.floor(np.log10(np.abs(val)))) if val != 0 else 0
     val_fmt = "{val:>{width}.{precision}f}"
     err_fmt = "±{err:>{width}.{precision}f}"
     if abs(e) > 1:
