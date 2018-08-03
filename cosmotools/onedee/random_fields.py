@@ -6,7 +6,7 @@ import scipy.interpolate
 import scipy.integrate
 import scipy.optimize
 
-from . import utils
+from .. import utils
 
 pi = np.pi
 
@@ -55,8 +55,8 @@ def variance_gamma_distribution_ppf(q, n, rho, sigma1=1, sigma2=1):
         
     return ppf.squeeze()
 
-def create_gaussian_random_field_1d(P, n_grid, L, fix_mean=None, 
-                                    output_fourier=False):
+def create_gaussian_random_field(P, n_grid, L, fix_mean=None, 
+                                 output_fourier=False):
     """Create 1D Gaussian random field from given power spectrum.
 
     Required Arguments:
@@ -83,8 +83,8 @@ def create_gaussian_random_field_1d(P, n_grid, L, fix_mean=None,
     else:
         return m
 
-def create_gaussian_random_fields_1d(power_spectra, n_grid, L, 
-                                     means=None):
+def create_gaussian_random_fields(power_spectra, n_grid, L, 
+                                  means=None):
     """Create correlated 1D Gaussian random fields from given power spectra.
 
     Required Arguments:
@@ -130,9 +130,9 @@ def create_gaussian_random_fields_1d(power_spectra, n_grid, L,
     m = np.fft.irfftn(m_ft, axes=[0,])
     return m.T
 
-def pseudo_Pofk_1d(m1, m2, L, mask=None, mode_mixing_matrix=False,
-                   k_min=None, k_max=None, n_k_bin=None, logspaced_k_bins=None,
-                   bin_edges=None):
+def pseudo_Pofk(m1, m2, L, mask=None, mode_mixing_matrix=False,
+                k_min=None, k_max=None, n_k_bin=None, logspaced_k_bins=None,
+                bin_edges=None):
     if m1.shape != m2.shape:
         raise ValueError("Map dimensions don't match: {} vs {}".format(m1.size, m2.size))
     
@@ -161,21 +161,6 @@ def pseudo_Pofk_1d(m1, m2, L, mask=None, mode_mixing_matrix=False,
     else:
         return Pofm[:n//2], k
 
-def interpolated_powerspectrum_from_file(filename):
-    k_grid, P_grid = np.loadtxt(filename, unpack=True)
-    if k_grid[0] == 0:
-        P0 = P_grid[0]
-        k_grid = k_grid[1:]
-        P_grid = P_grid[1:]
-    else:
-        P0 = 0
-
-    log_P_intp = scipy.interpolate.InterpolatedUnivariateSpline(np.log(k_grid), np.log(P_grid), k=1, ext=0)
-    def P(k):
-        Pofk = np.piecewise(k, k > 0, [lambda k: np.exp(log_P_intp(np.log(k))), P0])
-        return Pofk
-
-    return P
 # Alternative implementation of pseudo_Pofk_1d
 # def calculate_pseudo_P_k_1d(m1, m2, box_size, n_k_bin=None, k_min=None, k_max=None, logspaced=False):
 #     if m1.shape != m2.shape:

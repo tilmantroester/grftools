@@ -1,6 +1,6 @@
-
 import os
 import numpy as np
+import scipy.interpolate
 
 def mkdirs(path):
     """Recursively create directories.
@@ -102,3 +102,19 @@ def format_value_pm_error(val, err=None, precision=1, width=3):
         s += " 10^{exp:d}".format(exp=e)
         
     return s
+
+def interpolated_powerspectrum_from_file(filename):
+    k_grid, P_grid = np.loadtxt(filename, unpack=True)
+    if k_grid[0] == 0:
+        P0 = P_grid[0]
+        k_grid = k_grid[1:]
+        P_grid = P_grid[1:]
+    else:
+        P0 = 0
+
+    log_P_intp = scipy.interpolate.InterpolatedUnivariateSpline(np.log(k_grid), np.log(P_grid), k=1, ext=0)
+    def P(k):
+        Pofk = np.where(k > 0, np.exp(log_P_intp(np.log(k))), P0)
+        return Pofk
+
+    return P

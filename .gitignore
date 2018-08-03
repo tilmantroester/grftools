@@ -5,3 +5,5 @@ test/.ipynb_checkpoints/
 cosmotools.egg-info
 build/*
 dist/*
+
+.pytest_cache/
