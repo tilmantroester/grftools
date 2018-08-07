@@ -83,8 +83,7 @@ def create_gaussian_random_field(P, n_grid, L, fix_mean=None,
     else:
         return m
 
-def create_gaussian_random_fields(power_spectra, n_grid, L, 
-                                  means=None):
+def create_gaussian_random_fields(power_spectra, n_grid, L):
     """Create correlated 1D Gaussian random fields from given power spectra.
 
     Required Arguments:
@@ -151,6 +150,8 @@ def pseudo_Pofk(m1, m2, L, mask=None, mode_mixing_matrix=False,
             Pofm = (np.linalg.inv(mode_mixing_matrix) @ Pofm)[:n//2]
         else:
             Pofm = Pofm[:n//2]/np.mean(mask)
+    else:
+        Pofm = Pofm[:n//2]
     
     if bin_edges is not None or n_k_bin is not None:
         Pofm_binned, k_binned, Pofm_err = utils.bin_array(Pofm, k, 
@@ -159,7 +160,7 @@ def pseudo_Pofk(m1, m2, L, mask=None, mode_mixing_matrix=False,
                                                           bin_edges=bin_edges)
         return Pofm_binned, k_binned, Pofm_err
     else:
-        return Pofm[:n//2], k
+        return Pofm, k
 
 # Alternative implementation of pseudo_Pofk_1d
 # def calculate_pseudo_P_k_1d(m1, m2, box_size, n_k_bin=None, k_min=None, k_max=None, logspaced=False):
