@@ -356,7 +356,7 @@ def test_xcorr_xi_estimators():
 def test_xi_estimator_distribution(verbose=False, plot=False):
     np.random.seed(42)
 
-    n_grid = 400
+    n_grid = 200
     L = 1.0
     sigma = 1.3
     beta = 5
@@ -428,9 +428,9 @@ def test_xi_estimator_distribution(verbose=False, plot=False):
         fig.savefig("plots/1d_grf_xi.png")
 
 def test_xcorr_xi_estimator_distribution(verbose=False, plot=False):
-    np.random.seed(42)
+    np.random.seed(96)
 
-    n_grid = 400
+    n_grid = 200
     L = 1.0
     sigma = 1.3
     beta = 5
@@ -446,8 +446,7 @@ def test_xcorr_xi_estimator_distribution(verbose=False, plot=False):
     w1[:n_grid//10] = 0
     w1[-n_grid//10:] = 0
     w1[np.random.choice(n_grid, int(n_grid/4), replace=False)] = 0
-    w2 = w1
-#     w2[np.random.choice(n_grid, int(n_grid/20), replace=False)] = 0
+    w2[np.random.choice(n_grid, int(n_grid/20), replace=False)] = 0
     
     r_max_idx = n_grid
     n_r = 40
@@ -472,6 +471,7 @@ def test_xcorr_xi_estimator_distribution(verbose=False, plot=False):
     std = 3
     tolerance_xi = 0.01
     tolerance_xi_var = 0.01
+    tolerance_xi_cov = 0.01
     
     outliers_xi = np.abs(xi_truth - xis.mean(axis=(0,1)))/np.sqrt(xis.var(axis=(0,1))/n_r**2) > std
     if verbose: print("Number of xi points more than {} std away: {}".format(std, np.count_nonzero(outliers_xi)))
@@ -480,6 +480,20 @@ def test_xcorr_xi_estimator_distribution(verbose=False, plot=False):
     outliers_xi_var = np.abs(xi_var_truth - xi_var.mean(axis=0))/np.sqrt(xi_var.var(axis=0, ddof=1)/n_r) > std
     if verbose: print("Number of var of xi points more than {} std away: {}".format(std, np.count_nonzero(outliers_xi_var)))
     assert np.count_nonzero(outliers_xi_var) < n_grid*tolerance_xi_var
+
+    xi_cov = np.array([np.cov(xi.T, ddof=1) for xi in xis])
+    r1_idx = np.array([0, 1, 2, 3, 4, 5, 10, 20, 30, 40, 50])
+    r2_idx = np.array([1, 2, 3, 4, 5, 6, 20, 30, 40, 50, 80])
+    r1 = r[r1_idx]
+    r2 = r[r2_idx]
+    xi_cov_truth = cosmotools.onedee.stats.cov_mean_xcorr_xi_L_analytic(L, n_grid, f=1, r1=r1, r2=r2, 
+                                                                        power_spectra=[P_AA, P_BB, P_AB],
+                                                                        weights1=w1, weights2=w2)
+    
+    outliers_xi_cov = np.abs(xi_cov_truth - xi_cov.mean(axis=0)[r1_idx, r2_idx])/np.sqrt(xi_cov.var(axis=0, ddof=1)[r1_idx, r2_idx]/n_r) > std
+    if verbose: print("Number of cov of xi points more than {} std away: {}".format(std, np.count_nonzero(outliers_xi_cov)))
+    assert np.count_nonzero(outliers_xi_cov) < n_grid*tolerance_xi_cov
+
 
     if plot:
         import matplotlib.pyplot as plt

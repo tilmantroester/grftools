@@ -65,8 +65,7 @@ def _cov_mean_auto_xi_L_analytic_sum(xi, n, r1_idx, r2_idx, w=np.empty(0)):
     return cov/n**2
 
 @numba.jit(nopython=True)
-def _cov_mean_xcorr_xi_L_analytic_sum(xi_AA, xi_BB, xi_AB, n, r1_idx, r2_idx,
-                                      w1=np.empty(0), w2=np.empty(0)):
+def _cov_mean_xcorr_xi_L_analytic_sum(xi_AA, xi_BB, xi_AB, n, r1_idx, r2_idx):
     n_grid = len(xi_AA)
     cov = np.zeros_like(r1_idx, dtype=np.float64)
     for i, (r1, r2) in enumerate(zip(r1_idx, r2_idx)):
@@ -81,10 +80,34 @@ def _cov_mean_xcorr_xi_L_analytic_sum(xi_AA, xi_BB, xi_AB, n, r1_idx, r2_idx,
                        \
                     + 2*(xi_AB[abs(dxy-r2)%n_grid]*xi_AB[abs(dxy+r1)%n_grid] # Term 2
                     + xi_AB[abs(dxy)%n_grid]*xi_AB[abs(dxy+dr)%n_grid])
-                if len(w1) == 0 or len(w2) == 0:
-                    cov[i] += c
-                else:
-                    cov[i] += c*w1[x_idx]*w1[(x_idx+r1)%n_grid]*w2[y_idx]*w2[(y_idx+r2)%n_grid]
+                cov[i] += c
+
+    return cov/(4*n**2)
+
+@numba.jit(nopython=True)
+def _cov_mean_xcorr_xi_L_analytic_sum_weights(xi_AA, xi_BB, xi_AB, n, r1_idx, r2_idx,
+                                              w_A, w_B):
+    n_grid = len(xi_AA)
+    cov = np.zeros_like(r1_idx, dtype=np.float64)
+    for i, (r1, r2) in enumerate(zip(r1_idx, r2_idx)):
+        dr = r2 - r1
+        for x_idx in range(n):
+            w_x_p = w_A[x_idx]*w_B[(x_idx+r1)%n_grid]
+            w_x_m = w_A[(x_idx+r1)%n_grid]*w_B[x_idx]
+            for y_idx in range(n):
+                w_y_p = w_A[y_idx]*w_B[(y_idx+r2)%n_grid]
+                w_y_m = w_A[(y_idx+r2)%n_grid]*w_B[y_idx]
+                dxy = y_idx - x_idx
+                c =    w_x_p*w_y_p * (  xi_AA[abs(dxy)%n_grid]*xi_BB[abs(dxy+dr)%n_grid] 
+                                      + xi_AB[abs(dxy+r2)%n_grid]*xi_AB[abs(dxy-r1)%n_grid]) \
+                     + w_x_p*w_y_m * (  xi_AA[abs(dxy+r2)%n_grid]*xi_BB[abs(dxy-r1)%n_grid] 
+                                      + xi_AB[abs(dxy)%n_grid]*xi_AB[abs(dxy+dr)%n_grid]) \
+                     + w_x_m*w_y_p * (  xi_AA[abs(dxy-r1)%n_grid]*xi_BB[abs(dxy+r2)%n_grid] 
+                                      + xi_AB[abs(dxy)%n_grid]*xi_AB[abs(dxy+dr)%n_grid]) \
+                     + w_x_m*w_y_m * (  xi_AA[abs(dxy+dr)%n_grid]*xi_BB[abs(dxy)%n_grid]
+                                      + xi_AB[abs(dxy+r2)%n_grid]*xi_AB[abs(dxy-r1)%n_grid])
+
+                cov[i] += c
 
     return cov/(4*n**2)
 
@@ -153,9 +176,7 @@ def cov_mean_xcorr_xi_L_analytic(L, n_grid, f, r1, r2, xi=None, power_spectra=No
     if weights1 is None or weights2 is None:
         cov = _cov_mean_xcorr_xi_L_analytic_sum(*xi, n, r1_idx, r2_idx)
     else:
-        if not np.allclose(weights1, weights2):
-            warnings.warn("Currently only equal weights are supported.")
-        cov = _cov_mean_xcorr_xi_L_analytic_sum(*xi, n, r1_idx, r2_idx, weights1, weights2)
+        cov = _cov_mean_xcorr_xi_L_analytic_sum_weights(*xi, n, r1_idx, r2_idx, weights1, weights2)
         xi_w, _ = cross_correlation_function(weights1, weights2, L)
         cov /= xi_w[r1_idx]*xi_w[r2_idx]
 
