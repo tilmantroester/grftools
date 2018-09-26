@@ -229,6 +229,7 @@ def test_cov_mean_xcorr_xi_L_analytic():
 
 
 def test_xi_estimators():
+    """Tests FFT and marks correlation function estimators."""
     L = 0.5
     n_grid = 1000
     
@@ -264,6 +265,7 @@ def test_xi_estimators():
     assert np.allclose(xi1, xi2)
     
 def test_xcorr_xi_estimators():
+    """Tests FFT and marks cross correlation function estimators."""
     from cosmotools.onedee.stats import bin_data
     def correlation_function_fft(d, L, bins=None, weights=None):
         if weights is None:

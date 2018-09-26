@@ -120,7 +120,8 @@ def var_mean_xi_L_analytic(L, n_grid, f, r, xi=None, P=None, weights=None):
             raise ValueError("Either xi or P must be specified.")
         
     n = int(n_grid*f)
-    r_idx = np.array(r/L*n_grid, dtype=int)
+    r_idx = np.array(r/L*n_grid, dtype=int, ndmin=1)
+
     if weights is None:
         var = _var_mean_auto_xi_L_analytic_sum(xi, n, r_idx)
     else:
@@ -129,11 +130,14 @@ def var_mean_xi_L_analytic(L, n_grid, f, r, xi=None, P=None, weights=None):
         var /= xi_w[r_idx]**2
     
     rounding_correction = int(n_grid*f)/(n_grid*f)
-    return var*rounding_correction
+    return (var*rounding_correction).squeeze()
 
 def cov_mean_xi_L_analytic(L, n_grid, f, r1, r2, xi=None, P=None, weights=None):
     """Computes the covariance of the average of a correlation function over a domain L."""
-    
+    if np.allclose(r1, r2):
+        # Diagonal, i.e., variance
+        return var_mean_xi_L_analytic(L, n_grid, f, r=r1, xi=xi, P=P, weights=weights)
+
     if xi is None:
         if P is not None:
             xi = xi_analytic(P, L, n_grid)
@@ -141,8 +145,8 @@ def cov_mean_xi_L_analytic(L, n_grid, f, r1, r2, xi=None, P=None, weights=None):
             raise ValueError("Either xi or P must be specified.")
         
     n = int(n_grid*f)
-    r1_idx = np.array(r1/L*n_grid, dtype=int)
-    r2_idx = np.array(r2/L*n_grid, dtype=int)
+    r1_idx = np.array(r1/L*n_grid, dtype=int, ndmin=1)
+    r2_idx = np.array(r2/L*n_grid, dtype=int, ndmin=1)
     if weights is None:
         cov = _cov_mean_auto_xi_L_analytic_sum(xi, n, r1_idx, r2_idx)
     else:
@@ -160,19 +164,23 @@ def cov_mean_xcorr_xi_L_analytic(L, n_grid, f, r1, r2, xi=None, power_spectra=No
     if isinstance(r1, collections.Iterable) and isinstance(r2, collections.Iterable):
         if len(r1) != len(r2):
             raise ValueError("Shapes of r1 and r2 must match.")
-            
+    
     if xi is None:
         xi = []
         if power_spectra is not None:
             xi = [xi_analytic(P, L, n_grid) for P in power_spectra]
         else:
             raise ValueError("Either xi or P must be specified.")
-    if len(xi) != 3:
-        raise ValueError("Number of provided correlation functions or power spectra must be 3.")
+    if len(xi) == 1:
+        # Auto correlation
+        return cov_mean_xi_L_analytic(L, n_grid, f, r1, r2, xi=xi[0], weights=weights1)
+    else:
+        if len(xi) != 3:
+            raise ValueError("Number of provided correlation functions or power spectra must be 3.")
         
     n = int(n_grid*f)
-    r1_idx = np.array(r1/L*n_grid, dtype=int)
-    r2_idx = np.array(r2/L*n_grid, dtype=int)
+    r1_idx = np.array(r1/L*n_grid, dtype=int, ndmin=1)
+    r2_idx = np.array(r2/L*n_grid, dtype=int, ndmin=1)
     if weights1 is None or weights2 is None:
         cov = _cov_mean_xcorr_xi_L_analytic_sum(*xi, n, r1_idx, r2_idx)
     else:
@@ -215,7 +223,7 @@ def cross_correlation_function(d1, d2, L, bins=None, weights1=None, weights2=Non
         x = np.arange(len(xi_raw))*L/len(d1)
 
         if bins is None:
-            return xi_raw/xi_w_raw, x
+            return xi_raw/xi_w_raw, x, xi_w_raw
         else:
             xi, _ = bin_data(x=x, y=xi_raw, bin_edges=bins, normalize=False)
             xi_w, _ = bin_data(x=x, y=xi_w_raw, bin_edges=bins, normalize=False)
@@ -224,7 +232,7 @@ def cross_correlation_function(d1, d2, L, bins=None, weights1=None, weights2=Non
 
             x, _ = bin_data(x=x, y=x, bin_edges=bins, weights=xi_w_raw, normalize=True)
 
-            return xi, x
+            return xi, x, xi_w
     else:
         raise ValueError("Both weight1 and weight2 need to be specified.")
 
