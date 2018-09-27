@@ -257,7 +257,7 @@ def test_xi_estimators():
 
     r_max = L/100
     
-    xi1, r = cosmotools.onedee.stats.correlation_function(d, L, weights=w)
+    xi1, r, _ = cosmotools.onedee.stats.correlation_function(d, L, weights=w)
     xi1 = xi1[r < r_max]
     r = r[r < r_max]
     xi2_marks, xi2_w = cosmotools.onedee.stats.correlation_function_marks(d, L, x_max=r_max, weights=w)
@@ -317,7 +317,7 @@ def test_xcorr_xi_estimators():
 
     
     xi1, r = correlation_function_fft(d, L, weights=w)
-    xi2, r = cosmotools.onedee.stats.correlation_function(d, L, weights=w)
+    xi2, r, _ = cosmotools.onedee.stats.correlation_function(d, L, weights=w)
     assert np.allclose(xi1, xi2)
         
     r_max = L/100
@@ -348,7 +348,7 @@ def test_xcorr_xi_estimators():
     w2[np.random.choice(n_grid, int(n_grid/20), replace=False)] = 0
     
     r_max = L/20
-    xi1, r = cosmotools.onedee.stats.cross_correlation_function(d1, d2, L, weights1=w1, weights2=w2)
+    xi1, r, _ = cosmotools.onedee.stats.cross_correlation_function(d1, d2, L, weights1=w1, weights2=w2)
     xi1 = xi1[r < r_max]
     r = r[r < r_max]
     xi2_marks, xi2_w = cosmotools.onedee.stats.cross_correlation_function_marks(d1, d2, L, x_max=r_max, weights1=w1, weights2=w2)
@@ -377,7 +377,7 @@ def test_xi_estimator_distribution(verbose=False, plot=False):
     for i in range(n_r):
         for j in range(n_r):
             d = cosmotools.onedee.random_fields.create_gaussian_random_field(P, n_grid, L)
-            _xi, r = cosmotools.onedee.stats.correlation_function(d, L, weights=w)
+            _xi, r, _ = cosmotools.onedee.stats.correlation_function(d, L, weights=w)
             xis[i, j] = _xi[:r_max_idx]    
     
     xi_var = xis.var(axis=1, ddof=1)
@@ -456,7 +456,7 @@ def test_xcorr_xi_estimator_distribution(verbose=False, plot=False):
     for i in range(n_r):
         for j in range(n_r):
             d1, d2 = cosmotools.onedee.random_fields.create_gaussian_random_fields([P_AA, P_BB, P_AB], n_grid, L)
-            _xi, r = cosmotools.onedee.stats.cross_correlation_function(d1, d2, L, weights1=w1, weights2=w2)
+            _xi, r, _ = cosmotools.onedee.stats.cross_correlation_function(d1, d2, L, weights1=w1, weights2=w2)
             xis[i, j] = _xi[:r_max_idx]    
     
     xi_var = xis.var(axis=1, ddof=1)
