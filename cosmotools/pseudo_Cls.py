@@ -232,7 +232,8 @@ class Pseudo_Cl(object):
                  ell_min=None, ell_max=None, n_bin_Cl=None, logspaced_Cl=False, 
                  verbose=True, 
                  map1_processing=[], map2_processing=[], 
-                 filetype="fits", fits_hdu=0):
+                 filetype1="fits", fits_hdu1=0, hdf5_name1="",
+                 filetype2="fits", fits_hdu2=0, hdf5_name2=""):
         self.map_size = (map_size[0]/180*pi, map_size[1]/180*pi)
         self.map_shape = map_shape
         self.pixel_size = self.map_size[0]/self.map_shape[0]
@@ -253,41 +254,51 @@ class Pseudo_Cl(object):
         
         self.verbose = verbose
         
-        if filetype != "fits" and filetype != "raw":
-            raise NotImpemented("Filetype not supported.")
-        
         if verbose: print("Computing Cl.")
         self.compute_Cl(map1_paths, map2_paths, 
                         map1_processing, map2_processing,
-                        filetype, fits_hdu, verbose)
+                        filetype1, fits_hdu1, hdf5_name1,
+                        filetype2, fits_hdu2, hdf5_name2,
+                        verbose)
         if verbose: print("Computing band Cl.")
         self.compute_Cl_band()
 
     def compute_Cl(self, map1_paths, map2_paths, 
                          map1_processing, map2_processing,
-                         filetype, fits_hdu, verbose):
+                         filetype1, fits_hdu1, hdf5_name1,
+                         filetype2, fits_hdu2, hdf5_name2,
+                         verbose):
+        def read_file(filename, filetype, **kwargs):
+            if verbose:
+                print(f"File name: {filename}")
+                print(f"File type: {filetype}")
+                print("Args: {}".format(" ".join([f"{key} : {value}" for key, value in kwargs.items()])))
+            if filetype.lower() == "fits":
+                hdu = astropy.io.fits.open(filename)
+                m = hdu[kwargs["fits_hdu"]].data
+                hdu.close()
+            elif filetype.lower() == "raw":
+                m = np.fromfile(filename, dtype=np.float32).reshape(*kwargs["map_shape"])
+            elif filetype.lower() == "hdf5":
+                import h5py 
+                with h5py.File(filename, mode="r+") as f:
+                    m = f[kwargs["hdf5_name"]][()]
+            else:
+                raise ValueError(f"Unsupported file type {filetype}.")
+            
+            return m
+
         for i in range(self.n_LOS):
             if self.verbose: print("LOS {}".format(i+1))
             filename1 = map1_paths[i]
-            if filetype == "fits":
-                hdu = astropy.io.fits.open(filename1)
-                map1 = hdu[fits_hdu].data
-                hdu.close()
-            elif filetype == "raw":
-                map1 = np.fromfile(filename1, dtype=np.float32).reshape(*self.map_shape)
-            if map2_paths != None:
-                filename2 = map2_paths[i]
-                if filetype == "fits":
-                    hdu = astropy.io.fits.open(filename2)
-                    map2 = hdu[fits_hdu].data
-                    hdu.close()
-                elif filetype == "raw":
-                    map2 = np.fromfile(filename2, dtype=np.float32).reshape(*self.map_shape)
-            
+            map1 = read_file(filename1, filetype1, fits_hdu=fits_hdu1, hdf5_name=hdf5_name1, map_shape=self.map_shape)           
             map1, map1_size = process_map(map1, map1_processing, self.map_size, verbose)
+                          
             if map2_paths == None:
                 map2 = map1
             else:
+                filename2 = map2_paths[i]
+                map2 = read_file(filename2, filetype2, fits_hdu=fits_hdu2, hdf5_name=hdf5_name2, map_shape=self.map_shape)
                 map2, map2_size = process_map(map2, map2_processing, self.map_size, verbose)
                 if map1.shape != map2.shape or map1_size != map2_size:
                     raise RuntimeError("Map shapes or sizes do not match: shapes = {}, {}; sizes = {}, {}.".format(map1.shape, map2.shape, map1_size, map2_size))
