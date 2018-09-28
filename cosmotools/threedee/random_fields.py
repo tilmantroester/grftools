@@ -83,9 +83,10 @@ def pseudo_Pofk(m1, m2, L,
         if verbose: print("Calculating P(k).")
         for i in range(len(k)):
             Pk[i] += np.sum(m1_m2_ft.flatten()[idx==i]).real
+        counts = counts.astype(dtype=float)
         Pk /= counts
         Pk *= L**3/n**6
-        counts/= 2
+        counts /= 2
         return Pk, k, counts
             
     Pk *= L**3/n**6
