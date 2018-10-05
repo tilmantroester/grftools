@@ -77,10 +77,11 @@ def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False,
                 mean_x[i] = (bin_edges[i]+bin_edges[i+1])/2
         else:
             binned_array[i] = np.average(array[M], weights=w[M])
-            if return_error_on_mean:
-                scatter[i] = np.sqrt(weighted_var(array[M], w[M])/np.count_nonzero(M))
-            else:
-                scatter[i] = np.sqrt(weighted_var(array[M], w[M]))
+            if np.count_nonzero(M) > 1:
+                if return_error_on_mean:
+                    scatter[i] = np.sqrt(weighted_var(array[M], w[M])/np.count_nonzero(M))
+                else:
+                    scatter[i] = np.sqrt(weighted_var(array[M], w[M]))
 
             mean_x[i] = np.average(x[M], weights=w[M])
 
