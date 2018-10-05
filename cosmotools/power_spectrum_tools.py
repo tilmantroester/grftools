@@ -8,9 +8,57 @@ def sinc(x):
 
 def pseudo_Pofk(m1, m2, L, 
                 k_min=None, k_max=None, n_k_bin=None, logspaced_k_bins=True, 
-                bin_edges=None, dtype=np.float32,
+                bin_edges=None,
                 binning_mode=2, clean_caches=False, correct_pixel_window=False,
                 verbose=False):
+    """Compute the auto or cross-power spectrum between two maps.
+
+    Arguments
+    ---------
+    m1 : numpy.array
+        Field 1. Can be n-dimensional but the units haven't been checked for 
+        anything greater than 3. Needs to have the same size in all dimensions.
+    m2 : numpy.array
+        Field 2. Needs to the same dimension as ``m1``.
+    L : float
+        Size of the box.
+    k_min : float, optional
+        Lowest bin edge. (default None).
+    k_max : float, optional
+        Highest bin edge. (default None).
+    n_k_bin : int, optional
+        Number of bins. (default None).
+    logspaced_k_bins : bool, optional
+        Log-spaced bins. (default True).
+    bin_edges : numpy.array, optional
+        Array with bin edges. (default None).
+    binning_mode : int, optional
+        Binning mode. Valid values are ``1`` and ``2``. Mode 1 selects bin members 
+        with a Boolean mask, whereas mode 2 sorts the grid according to their 
+        k modes. Mode 2 tends to be faster. (default 2).
+    clean_caches : bool, optional
+        Clean the ``scipy.fftpack`` caches after doing the FFTs. If memory usage
+        is a concern this clears up memory as soon as possible. (default False).
+    correct_pixel_window : bool, optional
+        Correct for the pixel window function, i.e., divide by sinc. 
+        (default False).
+    verbose : bool, optional
+        Verbose output. (default False)
+
+    If neither ``n_k_bin`` nor ``bin_edges`` is specified, no binning is performed.
+    
+    Returns
+    -------
+    Pk : numpy.array
+        Estimate of the power spectrum.
+    k : numpy.array
+        Wave numbers corresponding to ``Pk``. If binned, uses mean of k values
+        in each bin.
+    Pk_var : numpy.array
+        The variance in each bin. Only present when binning.
+    n_mode : numpy.array
+        Multiplicity of modes or number of modes in each bin when binning.
+    """
     n_dim = m1.ndim
     if m1.ndim != m2.ndim:
         raise RuntimeError(f"Dimensions of m1 and m2 do not match: {m1.ndim}, {m2.ndim}.")
@@ -29,7 +77,7 @@ def pseudo_Pofk(m1, m2, L,
         scipy.fftpack._fftpack.destroy_cfftnd_cache()
 
     if verbose: print("Computing k grid.")
-    k_x = np.fft.fftfreq(n, d=1/n).astype(dtype)*2*pi/L
+    k_x = np.fft.fftfreq(n, d=1/n).astype(m1.dtype)*2*pi/L
     k_mesh = np.meshgrid(*([k_x]*n_dim), sparse=True, indexing="ij")
     k_grid = np.sqrt(sum(k**2 for k in k_mesh))
     
