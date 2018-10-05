@@ -12,12 +12,17 @@ def mkdirs(path):
 def weighted_var(a, w):
     """Compute weighted variance.
     
-    Arguments:
-        a (array): Input array.
-        w (array): Weight array.
+    Arguments
+    ---------
+    a : numpy.array
+        Input array.
+    w : numpy.array
+        Weight array.
         
-    Returns:
-        float: Weighted variance.
+    Returns
+    -------
+    var : float
+        Weighted variance.
     """
 
     V1 = np.sum(w)
@@ -30,25 +35,37 @@ def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False,
 
     Either ``bin_edges`` or ``x_min``, ``x_max``, and ``n_bin`` need to be specified.
 
-    Arguments:
-        array (numpy.ndarray): Input array to be binned.
-        x (numpy.array): Values according to which ``array`` will get binned.
-        x_min (float, optional): Lowest bin edge. (default None).
-        x_max (float, optional): Highest bin edge. (default None).
-        n_bin (int, optional): Number of bins. (default None).
-        logspaced (bool, optional): Choose log-spaced bins. (default False).
-        bin_edges (numpy.array, optional): Bin edges to use. (default None).
-        weights (numpy.array, optional): Weights for weighting entries in 
-            ``array``. (default None).
-        return_error_on_mean (bool, optional): Return the error on the mean of 
-            the bin instead of the standard deviation of its members. (default True).
+    Arguments
+    ---------
+    array : numpy.ndarray
+        Input array to be binned.
+    x : numpy.array
+        Values according to which ``array`` will get binned.
+    x_min : float, optional
+        Lowest bin edge. (default None).
+    x_max : float, optional
+        Highest bin edge. (default None).
+    n_bin : int, optional
+        Number of bins. (default None).
+    logspaced : bool, optional
+        Choose log-spaced bins. (default False).
+    bin_edges : numpy.array, optional
+        Bin edges to use. (default None).
+    weights : numpy.array, optional
+        Weights for weighting entries in ``array``. (default None).
+    return_error_on_mean : bool, optional
+        Return the error on the mean of the bin instead of the standard deviation 
+        of its members. (default True).
 
-    Returns:
-        (tuple): tuple containing:
-            (numpy.array): Binned ``array``.
-            (numpy.array): Mean ``x`` in each bin.
-            (numpy.array): Standard deviation of ``array`` values in each bin. 
-                If ``return_error_on_mean == True`` returns error on the mean instead.
+    Returns
+    -------
+    binned_array : numpy.array
+        Binned ``array``.
+    mean_x : numpy.array
+        Mean ``x`` in each bin.
+    scatter : numpy.array
+        Standard deviation of ``array`` values in each bin. 
+        If ``return_error_on_mean == True`` returns error on the mean instead.
     """
     
     if bin_edges is None:
@@ -92,12 +109,17 @@ def rebin_2d(a, shape):
     
     From https://stackoverflow.com/a/8090605
 
-    Arguments:
-        a (2D numpy.array): Input array.
-        shape (tuple): Target shape.
+    Arguments
+    --------
+    a : 2d numpy.array
+        Input array.
+    shape : tuple
+        Target shape.
         
-    Returns:
-        (2D numpy.array): Binned 2D array with shape ``shape``.
+    Returns
+    -------
+    binned_array : numpy.array
+        Binned 2D array with shape ``shape``.
     """
     sh = shape[0],a.shape[0]//shape[0],shape[1],a.shape[1]//shape[1]
     return a.reshape(sh).mean(-1).mean(1)
@@ -138,13 +160,16 @@ def format_value_pm_error(val, err=None, precision=1, width=3):
 def interpolated_powerspectrum_from_file(filename):
     """Creates callable that interpolates a tabulated power spectrum in log-space.
 
-    Arguments:
-        filename (str): Filename of the input power spectrum. Should have two
-            columns: k and P(k).
+    Arguments
+    ---------
+    filename : str
+        Filename of the input power spectrum. Should have two columns: k and P(k).
 
-    Returns:
-        (callable): Function P(k) that interpolates the tabulated power spectrum
-            in the file in log-space.
+    Returns
+    -------
+    P(k) : callable
+        Function P(k) that interpolates the tabulated power spectrum in the file 
+        in log-space.
     """
 
     k_grid, P_grid = np.loadtxt(filename, unpack=True)
