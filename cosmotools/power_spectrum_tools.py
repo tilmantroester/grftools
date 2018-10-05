@@ -34,7 +34,7 @@ def pseudo_Pofk(m1, m2, L,
     k_grid = np.sqrt(sum(k**2 for k in k_mesh))
     
     if correct_pixel_window:
-        m1_m2_ft *= np.prod(1/sinc(L/(2*n)*k_mesh), axis=0)**(2*n_dim)
+        m1_m2_ft *= np.prod([1/sinc(L/(2*n)*k) for k in k_mesh], axis=0)**(2*n_dim)
     
     if bin_edges is not None or n_k_bin is not None:
         if bin_edges is None:
