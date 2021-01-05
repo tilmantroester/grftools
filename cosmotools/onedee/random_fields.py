@@ -55,6 +55,39 @@ def variance_gamma_distribution_ppf(q, n, rho, sigma1=1, sigma2=1):
         
     return ppf.squeeze()
 
+def gal_distribution(x, mu, sigma, s=1/2, d=1):
+    if d == 1:
+        if abs(sigma) < 1e-5:
+            # Gamma distribution
+            p = scipy.stats.gamma.pdf(x, a=s, scale=mu)
+        else:
+            K_nu = lambda x: scipy.special.kv(s-1/2, x)
+            Gamma = scipy.special.gamma(s)
+            Q = np.abs(x)/sigma
+            C = np.sqrt(2+mu**2/sigma**2)
+            p = 2*np.exp(mu*x/sigma**2)/((2*pi)**(1/2)*Gamma*sigma)*(Q/C)**(s-1/2)*K_nu(Q*C)
+    else:
+        Sigma_det = np.linalg.det(sigma)
+        if abs(Sigma_det) < 1e-7:
+            raise ValueError("I don't know what the limit Sigma->0 of the multivariate GAL distribution is.")
+        else:
+            K_nu = lambda x: scipy.special.kv(s-d/2, x)
+            Gamma = scipy.special.gamma(s)
+            Sigma_inv = np.linalg.inv(sigma)
+            Q = np.sqrt(x.T @ Sigma_inv @ x)
+            C = np.sqrt(2+mu.T @ Sigma_inv @ mu)
+            p = 2*np.exp(mu.T @ Sigma_inv @ x)/((2*pi)**(d/2)*Gamma*np.sqrt(Sigma_det))*(Q/C)**(s-d/2)*K_nu(Q*C)
+    return p
+    
+def sample_gal_distribution(size, mu, sigma, s=1/2, d=1):
+    if d == 1:
+        Z = scipy.stats.gamma.rvs(a=s, size=size)
+        X = scipy.stats.norm.rvs(size=size)
+        
+        return mu*Z + sigma*np.sqrt(Z)*X
+    else:
+        raise NotImplementedError()
+
 def create_gaussian_random_field(P, n_grid, L, fix_mean=None, 
                                  output_fourier=False):
     """Create 1D Gaussian random field from given power spectrum.

@@ -14,14 +14,16 @@ def var_mean_delta_L_analytic(P, L, f, n_grid):
     W[1:] = s(k[1:]*L*f/2)
     return np.trapz(2/(2*pi)*P(k)*W**2, k)
 
-def xi_analytic(P, L, n_grid, r=None):
+def xi_analytic(P, L, n_grid, r=None, r_idx=None):
     """Calculate the correlation function given a power spectrum."""
     if n_grid%2 != 0:
         warnings.warn("n_grid should be even.")
         
     k = np.fft.rfftfreq(n_grid)*2*pi/L*n_grid
     xi = np.fft.irfft(P(k))*n_grid/L
-    if r is not None:
+    if r_idx is not None:
+        xi = xi[r_idx]
+    elif r is not None:
         r_idx = np.array(r/L*n_grid, dtype=int)
         if not np.allclose(r_idx/n_grid*L, r):
             warnings.warn("Requested r does not lie on grid.")
@@ -111,7 +113,7 @@ def _cov_mean_xcorr_xi_L_analytic_sum_weights(xi_AA, xi_BB, xi_AB, n, r1_idx, r2
 
     return cov/(4*n**2)
 
-def var_mean_xi_L_analytic(L, n_grid, f, r, xi=None, P=None, weights=None):
+def var_mean_xi_L_analytic(L, n_grid, f, r=None, r_idx=None, xi=None, P=None, weights=None):
     """Computes the variance of the average of a correlation function over a domain L."""
     if xi is None:
         if P is not None:
@@ -120,7 +122,12 @@ def var_mean_xi_L_analytic(L, n_grid, f, r, xi=None, P=None, weights=None):
             raise ValueError("Either xi or P must be specified.")
         
     n = int(n_grid*f)
-    r_idx = np.array(r/L*n_grid, dtype=int, ndmin=1)
+    if r is None and r_idx is None:
+        raise ValueError("Either r or r_idx need to be specified.")
+    if r_idx is None:
+        r_idx = np.array(r/L*n_grid, dtype=int, ndmin=1)
+    else:
+        r_idx = np.array(r_idx, dtype=int, ndmin=1)
 
     if weights is None:
         var = _var_mean_auto_xi_L_analytic_sum(xi, n, r_idx)
