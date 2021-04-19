@@ -1,8 +1,8 @@
-cosmotools/__pycache__/
+grftools/__pycache__/
 *.pyc
 test/.ipynb_checkpoints/
 
-cosmotools.egg-info
+grftools.egg-info
 build/*
 dist/*
 

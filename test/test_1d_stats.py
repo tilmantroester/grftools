@@ -1,6 +1,6 @@
 import numpy as np
 
-import cosmotools.onedee.stats
+import grftools.onedee.stats
 
 pi = np.pi
 
@@ -25,7 +25,7 @@ def test_xi_analytic():
     P = lambda k: np.ones_like(k)
     
     xi_trapz = xi_analytic_trapz(P, L, n_grid)
-    xi = cosmotools.onedee.stats.xi_analytic(P, L, n_grid)
+    xi = grftools.onedee.stats.xi_analytic(P, L, n_grid)
     assert np.allclose(xi_trapz, xi)
     
     # Correlated fields
@@ -35,12 +35,12 @@ def test_xi_analytic():
     P = lambda k: np.where(k != 0, k/(1+k/k0)**(beta+1), sigma)
     
     xi_trapz = xi_analytic_trapz(P, L, n_grid)
-    xi = cosmotools.onedee.stats.xi_analytic(P, L, n_grid)
+    xi = grftools.onedee.stats.xi_analytic(P, L, n_grid)
     assert np.allclose(xi_trapz, xi)
     
     r = np.array([0, L/76.4, L/2])
     xi_trapz = xi_analytic_trapz(P, L, n_grid, r=r)
-    xi = cosmotools.onedee.stats.xi_analytic(P, L, n_grid, r=r)
+    xi = grftools.onedee.stats.xi_analytic(P, L, n_grid, r=r)
     assert np.allclose(xi_trapz, xi)
 
 def test_var_mean_xi_L_analytic():
@@ -67,7 +67,7 @@ def test_var_mean_xi_L_analytic():
 
     def var_mean_xi_L_analytic_numpy_sum(P, L, n_grid, f, r, xi=None):
         if xi is None:
-            xi = cosmotools.onedee.stats.xi_analytic(P, L, n_grid)
+            xi = grftools.onedee.stats.xi_analytic(P, L, n_grid)
         a = _var_mean_xi_L_analytic_term_1_sum(xi, f, n_grid)
         b = _var_mean_xi_L_analytic_term_2_sum(xi, L, f, n_grid, r)
 
@@ -79,18 +79,18 @@ def test_var_mean_xi_L_analytic():
     
     # White noise
     P = lambda k: np.ones_like(k)
-    xi = cosmotools.onedee.stats.xi_analytic(P, L, n_grid)
+    xi = grftools.onedee.stats.xi_analytic(P, L, n_grid)
     
     f = 0.1
     r = np.array([L/100, L/10, L/2])
     var1 = var_mean_xi_L_analytic_numpy_sum(None, L, n_grid, f, r, xi=xi)
-    var2 = cosmotools.onedee.stats.var_mean_xi_L_analytic(L, n_grid, f, r, xi=xi)
+    var2 = grftools.onedee.stats.var_mean_xi_L_analytic(L, n_grid, f, r, xi=xi)
     assert np.allclose(var1, var2)
     
     f = 1
     r = np.array([L/100, L/10, L/2])
     var1 = var_mean_xi_L_analytic_numpy_sum(None, L, n_grid, f, r, xi=xi)
-    var2 = cosmotools.onedee.stats.var_mean_xi_L_analytic(L, n_grid, f, r, xi=xi)
+    var2 = grftools.onedee.stats.var_mean_xi_L_analytic(L, n_grid, f, r, xi=xi)
     assert np.allclose(var1, var2)
     
     # Correlated field
@@ -98,24 +98,24 @@ def test_var_mean_xi_L_analytic():
     beta = 5
     k0 = 150
     P = lambda k: np.where(k != 0, k/(1+k/k0)**(beta+1), sigma)
-    xi = cosmotools.onedee.stats.xi_analytic(P, L, n_grid)
+    xi = grftools.onedee.stats.xi_analytic(P, L, n_grid)
     
     f = 0.1
     r = np.array([L/100, L/10, L/2])
     var1 = var_mean_xi_L_analytic_numpy_sum(None, L, n_grid, f, r, xi=xi)
-    var2 = cosmotools.onedee.stats.var_mean_xi_L_analytic(L, n_grid, f, r, xi=xi)
+    var2 = grftools.onedee.stats.var_mean_xi_L_analytic(L, n_grid, f, r, xi=xi)
     assert np.allclose(var1, var2)
     
     f = 1
     r = np.array([L/100, L/10, L/2])
     var1 = var_mean_xi_L_analytic_numpy_sum(None, L, n_grid, f, r, xi=xi)
-    var2 = cosmotools.onedee.stats.var_mean_xi_L_analytic(L, n_grid, f, r, xi=xi)
+    var2 = grftools.onedee.stats.var_mean_xi_L_analytic(L, n_grid, f, r, xi=xi)
     assert np.allclose(var1, var2)
 
 def test_cov_mean_xi_L_analytic():
     # Explict numpy sums
     def cov_mean_xi_L_analytic_numpy_sum(P, L, n_grid, f, r1, r2):
-        xi = cosmotools.onedee.stats.xi_analytic(P, L, n_grid)
+        xi = grftools.onedee.stats.xi_analytic(P, L, n_grid)
 
         n = int(n_grid*f)
         r1_idx = np.array((r1/L*n_grid,), dtype=int)
@@ -144,12 +144,12 @@ def test_cov_mean_xi_L_analytic():
     r1 = np.array([L/100, L/10, L/2])
     r2 = np.array([L/50, L/5, L/4])
     
-    var1 = cosmotools.onedee.stats.var_mean_xi_L_analytic(L, n_grid, f, r1, P=P)
-    var2 = cosmotools.onedee.stats.cov_mean_xi_L_analytic(L, n_grid, f, r1, r1, P=P)
+    var1 = grftools.onedee.stats.var_mean_xi_L_analytic(L, n_grid, f, r1, P=P)
+    var2 = grftools.onedee.stats.cov_mean_xi_L_analytic(L, n_grid, f, r1, r1, P=P)
     assert np.allclose(var1, var2)
     
     cov1 = cov_mean_xi_L_analytic_numpy_sum(P, L, n_grid, f, r1, r2)
-    cov2 = cosmotools.onedee.stats.cov_mean_xi_L_analytic(L, n_grid, f, r1, r2, P=P)
+    cov2 = grftools.onedee.stats.cov_mean_xi_L_analytic(L, n_grid, f, r1, r2, P=P)
     assert np.allclose(cov1, cov2)
     
     # Correlated field
@@ -162,15 +162,15 @@ def test_cov_mean_xi_L_analytic():
     r1 = np.array([L/100, L/10, L/2])
     r2 = np.array([L/50, L/5, L/4])
     cov1 = cov_mean_xi_L_analytic_numpy_sum(P, L, n_grid, f, r1, r2)
-    cov2 = cosmotools.onedee.stats.cov_mean_xi_L_analytic(L, n_grid, f, r1, r2, P=P)
+    cov2 = grftools.onedee.stats.cov_mean_xi_L_analytic(L, n_grid, f, r1, r2, P=P)
     assert np.allclose(cov1, cov2)
         
     
 def test_cov_mean_xcorr_xi_L_analytic():
     def cov_mean_xcorr_xi_L_analytic_numpy_sum(P1, P2, P12, L, n_grid, f, r1, r2):
-        xi_1 = cosmotools.onedee.stats.xi_analytic(P1, L, n_grid)
-        xi_2 = cosmotools.onedee.stats.xi_analytic(P2, L, n_grid)
-        xi_12 = cosmotools.onedee.stats.xi_analytic(P12, L, n_grid)
+        xi_1 = grftools.onedee.stats.xi_analytic(P1, L, n_grid)
+        xi_2 = grftools.onedee.stats.xi_analytic(P2, L, n_grid)
+        xi_12 = grftools.onedee.stats.xi_analytic(P12, L, n_grid)
 
         n = int(n_grid*f)
         r1_idx = np.array((r1/L*n_grid,), dtype=int)
@@ -209,22 +209,22 @@ def test_cov_mean_xcorr_xi_L_analytic():
     f = 0.5
     r1 = np.array([L/100, L/10, L/2])
     r2 = np.array([L/50, L/5, L/4])
-    cov1 = cosmotools.onedee.stats.cov_mean_xi_L_analytic(L, n_grid, f, r1, r2, P=P_AA)
-    cov2 = cosmotools.onedee.stats.cov_mean_xcorr_xi_L_analytic(L, n_grid, f, r1, r2, power_spectra=[P_AA, P_AA, P_AA])
+    cov1 = grftools.onedee.stats.cov_mean_xi_L_analytic(L, n_grid, f, r1, r2, P=P_AA)
+    cov2 = grftools.onedee.stats.cov_mean_xcorr_xi_L_analytic(L, n_grid, f, r1, r2, power_spectra=[P_AA, P_AA, P_AA])
     assert np.allclose(cov1, cov2)
         
     f = 0.1
     r1 = np.array([L/100, L/10, L/2])
     r2 = np.array([L/50, L/5, L/4])
     cov1 = cov_mean_xcorr_xi_L_analytic_numpy_sum(P_AA, P_BB, P_AB, L, n_grid, f, r1, r2)
-    cov2 = cosmotools.onedee.stats.cov_mean_xcorr_xi_L_analytic(L, n_grid, f, r1, r2, power_spectra=[P_AA, P_BB, P_AB])
+    cov2 = grftools.onedee.stats.cov_mean_xcorr_xi_L_analytic(L, n_grid, f, r1, r2, power_spectra=[P_AA, P_BB, P_AB])
     assert np.allclose(cov1, cov2)
     
     f = 1
     r1 = np.array([L/100, L/10, L/2])
     r2 = np.array([L/50, L/5, L/4])
     cov1 = cov_mean_xcorr_xi_L_analytic_numpy_sum(P_AA, P_BB, P_AB, L, n_grid, f, r1, r2)
-    cov2 = cosmotools.onedee.stats.cov_mean_xcorr_xi_L_analytic(L, n_grid, f, r1, r2, power_spectra=[P_AA, P_BB, P_AB])
+    cov2 = grftools.onedee.stats.cov_mean_xcorr_xi_L_analytic(L, n_grid, f, r1, r2, power_spectra=[P_AA, P_BB, P_AB])
     assert np.allclose(cov1, cov2)
 
 
@@ -234,13 +234,13 @@ def test_xi_estimators():
     n_grid = 1000
     
     P = lambda k: np.ones_like(k)    
-    d = cosmotools.onedee.random_fields.create_gaussian_random_field(P, n_grid, L)
+    d = grftools.onedee.random_fields.create_gaussian_random_field(P, n_grid, L)
     
     r_max = L/100
     
-    xi1, r = cosmotools.onedee.stats.correlation_function(d, L)
+    xi1, r = grftools.onedee.stats.correlation_function(d, L)
     xi1 = xi1[r < r_max]
-    xi2_marks, xi2_w = cosmotools.onedee.stats.correlation_function_marks(d, L, x_max=r_max)
+    xi2_marks, xi2_w = grftools.onedee.stats.correlation_function_marks(d, L, x_max=r_max)
     xi2 = np.average(xi2_marks, weights=xi2_w, axis=0)
     assert np.allclose(xi1, xi2)
     
@@ -248,7 +248,7 @@ def test_xi_estimators():
     beta = 5
     k0 = 150
     P = lambda k: np.where(k != 0, k/(1+k/k0)**(beta+1), sigma)
-    d = cosmotools.onedee.random_fields.create_gaussian_random_field(P, n_grid, L)
+    d = grftools.onedee.random_fields.create_gaussian_random_field(P, n_grid, L)
     
     w = np.ones(n_grid)
     w[:100] = 0
@@ -257,16 +257,16 @@ def test_xi_estimators():
 
     r_max = L/100
     
-    xi1, r, _ = cosmotools.onedee.stats.correlation_function(d, L, weights=w)
+    xi1, r, _ = grftools.onedee.stats.correlation_function(d, L, weights=w)
     xi1 = xi1[r < r_max]
     r = r[r < r_max]
-    xi2_marks, xi2_w = cosmotools.onedee.stats.correlation_function_marks(d, L, x_max=r_max, weights=w)
+    xi2_marks, xi2_w = grftools.onedee.stats.correlation_function_marks(d, L, x_max=r_max, weights=w)
     xi2 = np.average(xi2_marks, weights=xi2_w, axis=0)
     assert np.allclose(xi1, xi2)
     
 def test_xcorr_xi_estimators():
     """Tests FFT and marks cross correlation function estimators."""
-    from cosmotools.onedee.stats import bin_data
+    from grftools.onedee.stats import bin_data
     def correlation_function_fft(d, L, bins=None, weights=None):
         if weights is None:
             d_ft = np.fft.rfft(d)
@@ -308,7 +308,7 @@ def test_xcorr_xi_estimators():
     beta = 5
     k0 = 150
     P = lambda k: np.where(k != 0, k/(1+k/k0)**(beta+1), sigma)
-    d = cosmotools.onedee.random_fields.create_gaussian_random_field(P, n_grid, L)
+    d = grftools.onedee.random_fields.create_gaussian_random_field(P, n_grid, L)
     
     w = np.ones(n_grid)
     w[:100] = 0
@@ -317,13 +317,13 @@ def test_xcorr_xi_estimators():
 
     
     xi1, r = correlation_function_fft(d, L, weights=w)
-    xi2, r, _ = cosmotools.onedee.stats.correlation_function(d, L, weights=w)
+    xi2, r, _ = grftools.onedee.stats.correlation_function(d, L, weights=w)
     assert np.allclose(xi1, xi2)
         
     r_max = L/100
-    xi1_marks, xi1_w = cosmotools.onedee.stats.correlation_function_marks(d, L, x_max=r_max, weights=w)
+    xi1_marks, xi1_w = grftools.onedee.stats.correlation_function_marks(d, L, x_max=r_max, weights=w)
     xi1 = np.average(xi1_marks, weights=xi1_w, axis=0)
-    xi2_marks, xi2_w = cosmotools.onedee.stats.cross_correlation_function_marks(d, d, L, x_max=r_max, weights1=w, weights2=w)
+    xi2_marks, xi2_w = grftools.onedee.stats.cross_correlation_function_marks(d, d, L, x_max=r_max, weights1=w, weights2=w)
     xi2 = np.average(xi2_marks, weights=xi2_w, axis=0)
     assert np.allclose(xi1, xi2)
             
@@ -337,7 +337,7 @@ def test_xcorr_xi_estimators():
     rho = 0.8
     P_AB = lambda k: np.sqrt(P_AA(k)*P_BB(k))*rho
     
-    d1, d2 = cosmotools.onedee.random_fields.create_gaussian_random_fields([P_AA, P_BB, P_AB], n_grid, L)
+    d1, d2 = grftools.onedee.random_fields.create_gaussian_random_fields([P_AA, P_BB, P_AB], n_grid, L)
     
     w1 = np.ones(n_grid)
     w1[:100] = 0
@@ -348,10 +348,10 @@ def test_xcorr_xi_estimators():
     w2[np.random.choice(n_grid, int(n_grid/20), replace=False)] = 0
     
     r_max = L/20
-    xi1, r, _ = cosmotools.onedee.stats.cross_correlation_function(d1, d2, L, weights1=w1, weights2=w2)
+    xi1, r, _ = grftools.onedee.stats.cross_correlation_function(d1, d2, L, weights1=w1, weights2=w2)
     xi1 = xi1[r < r_max]
     r = r[r < r_max]
-    xi2_marks, xi2_w = cosmotools.onedee.stats.cross_correlation_function_marks(d1, d2, L, x_max=r_max, weights1=w1, weights2=w2)
+    xi2_marks, xi2_w = grftools.onedee.stats.cross_correlation_function_marks(d1, d2, L, x_max=r_max, weights1=w1, weights2=w2)
     xi2 = np.average(xi2_marks, weights=xi2_w, axis=0)
     assert np.allclose(xi1, xi2)
 
@@ -376,16 +376,16 @@ def test_xi_estimator_distribution(verbose=False, plot=False):
     xis = np.zeros((n_r, n_r, r_max_idx))
     for i in range(n_r):
         for j in range(n_r):
-            d = cosmotools.onedee.random_fields.create_gaussian_random_field(P, n_grid, L)
-            _xi, r, _ = cosmotools.onedee.stats.correlation_function(d, L, weights=w)
+            d = grftools.onedee.random_fields.create_gaussian_random_field(P, n_grid, L)
+            _xi, r, _ = grftools.onedee.stats.correlation_function(d, L, weights=w)
             xis[i, j] = _xi[:r_max_idx]    
     
     xi_var = xis.var(axis=1, ddof=1)
     
     r = r[:r_max_idx]
     
-    xi_truth = cosmotools.onedee.stats.xi_analytic(P, L, n_grid)
-    xi_var_truth = cosmotools.onedee.stats.var_mean_xi_L_analytic(L, n_grid, f=1, r=r, xi=xi_truth, weights=w)
+    xi_truth = grftools.onedee.stats.xi_analytic(P, L, n_grid)
+    xi_var_truth = grftools.onedee.stats.var_mean_xi_L_analytic(L, n_grid, f=1, r=r, xi=xi_truth, weights=w)
     
     xi_truth = xi_truth[:r_max_idx]
     
@@ -455,16 +455,16 @@ def test_xcorr_xi_estimator_distribution(verbose=False, plot=False):
     xis = np.zeros((n_r, n_r, r_max_idx))
     for i in range(n_r):
         for j in range(n_r):
-            d1, d2 = cosmotools.onedee.random_fields.create_gaussian_random_fields([P_AA, P_BB, P_AB], n_grid, L)
-            _xi, r, _ = cosmotools.onedee.stats.cross_correlation_function(d1, d2, L, weights1=w1, weights2=w2)
+            d1, d2 = grftools.onedee.random_fields.create_gaussian_random_fields([P_AA, P_BB, P_AB], n_grid, L)
+            _xi, r, _ = grftools.onedee.stats.cross_correlation_function(d1, d2, L, weights1=w1, weights2=w2)
             xis[i, j] = _xi[:r_max_idx]    
     
     xi_var = xis.var(axis=1, ddof=1)
     
     r = r[:r_max_idx]
     
-    xi_truth = cosmotools.onedee.stats.xi_analytic(P_AB, L, n_grid)
-    xi_var_truth = cosmotools.onedee.stats.cov_mean_xcorr_xi_L_analytic(L, n_grid, f=1, r1=r, r2=r, 
+    xi_truth = grftools.onedee.stats.xi_analytic(P_AB, L, n_grid)
+    xi_var_truth = grftools.onedee.stats.cov_mean_xcorr_xi_L_analytic(L, n_grid, f=1, r1=r, r2=r, 
                                                                         power_spectra=[P_AA, P_BB, P_AB],
                                                                         weights1=w1, weights2=w2)
     
@@ -488,7 +488,7 @@ def test_xcorr_xi_estimator_distribution(verbose=False, plot=False):
     r2_idx = np.array([1, 2, 3, 4, 5, 6, 20, 30, 40, 50, 80])
     r1 = r[r1_idx]
     r2 = r[r2_idx]
-    xi_cov_truth = cosmotools.onedee.stats.cov_mean_xcorr_xi_L_analytic(L, n_grid, f=1, r1=r1, r2=r2, 
+    xi_cov_truth = grftools.onedee.stats.cov_mean_xcorr_xi_L_analytic(L, n_grid, f=1, r1=r1, r2=r2, 
                                                                         power_spectra=[P_AA, P_BB, P_AB],
                                                                         weights1=w1, weights2=w2)
     

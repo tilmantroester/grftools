@@ -168,7 +168,8 @@ def cov_mean_xcorr_xi_L_analytic(L, n_grid, f, r1, r2, xi=None, power_spectra=No
                                  weights1=None, weights2=None):
     """Computes the covariance of the average of a cross-correlation function over a domain L."""
 
-    if isinstance(r1, collections.Iterable) and isinstance(r2, collections.Iterable):
+    if (isinstance(r1, collections.abc.Iterable)
+            and isinstance(r2, collections.abc.Iterable)):
         if len(r1) != len(r2):
             raise ValueError("Shapes of r1 and r2 must match.")
     

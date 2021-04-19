@@ -1,8 +1,8 @@
 import numpy as np
 
-import cosmotools.power_spectrum_tools
+import grftools.power_spectrum_tools
 
-import cosmotools.onedee.random_fields
+import grftools.onedee.random_fields
 
 pi = np.pi
 
@@ -11,13 +11,13 @@ def test_1d_pseudo_Pofk():
     L = 1
     m = np.random.rand(n).astype(dtype=np.float32)
 
-    Pk, k, Pk_var, n_mode = cosmotools.power_spectrum_tools.pseudo_Pofk(m, m, L, 
+    Pk, k, Pk_var, n_mode = grftools.power_spectrum_tools.pseudo_Pofk(m, m, L, 
                                                                         k_min=(2*pi)/L, 
                                                                         k_max=(2*pi)/L*n/2, 
                                                                         n_k_bin=n//2, 
                                                                         logspaced_k_bins=False)
 
-    Pk_1d, k_1d, Pk_err_1d = cosmotools.onedee.random_fields.pseudo_Pofk(m, m, L, 
+    Pk_1d, k_1d, Pk_err_1d = grftools.onedee.random_fields.pseudo_Pofk(m, m, L, 
                                                                          k_min=(2*pi)/L, 
                                                                          k_max=(2*pi)/L*n/2, 
                                                                          n_k_bin=n//2, 
@@ -116,7 +116,7 @@ def test_2d_pseudo_Pofk():
                                                                       ell_max=(2*pi)/L*n/2, 
                                                                       n_bin=n//2)
 
-    Pk, k, Pk_var, n_mode = cosmotools.power_spectrum_tools.pseudo_Pofk(m, m, L, 
+    Pk, k, Pk_var, n_mode = grftools.power_spectrum_tools.pseudo_Pofk(m, m, L, 
                                                                         k_min=(2*pi)/L, 
                                                                         k_max=(2*pi)/L*n/2, 
                                                                         n_k_bin=n//2, 
@@ -135,7 +135,7 @@ def test_3d_pseudo_Pofk(plot=False):
     m1 = np.random.randn(n_grid, n_grid, n_grid)
     m2 = np.random.randn(n_grid, n_grid, n_grid)
 
-    Pk, k, n_mode = cosmotools.power_spectrum_tools.pseudo_Pofk(m1, m2, L, 
+    Pk, k, n_mode = grftools.power_spectrum_tools.pseudo_Pofk(m1, m2, L, 
                                         k_min=None, k_max=None, n_k_bin=None, logspaced_k_bins=True, 
                                         bin_edges=None, binning_mode=1, 
                                         verbose=False)
@@ -144,7 +144,7 @@ def test_3d_pseudo_Pofk(plot=False):
     k_max = k_min*n_grid/2
     n_k_bin = 5
 
-    Pk, k, Pk_var, n_mode = cosmotools.power_spectrum_tools.pseudo_Pofk(m1, m2, L, 
+    Pk, k, Pk_var, n_mode = grftools.power_spectrum_tools.pseudo_Pofk(m1, m2, L, 
                                         k_min=k_min, k_max=k_max, n_k_bin=n_k_bin, logspaced_k_bins=True, 
                                         bin_edges=None, binning_mode=1, 
                                         verbose=False)

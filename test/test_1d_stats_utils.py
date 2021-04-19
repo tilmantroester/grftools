@@ -1,6 +1,6 @@
 import numpy as np
 
-import cosmotools.onedee.stats
+import grftools.onedee.stats
 
 def _find_bin_np(x, bin_edges):
     if x < bin_edges[0] or x >= bin_edges[-1]:
@@ -44,16 +44,16 @@ def test_find_bin(n_sample=10000, n_bin=1000, seed=234, timing=False):
     bins_np = np.zeros(n_sample)
 
     for i in range(n_sample):
-        bins[i] = cosmotools.onedee.stats.find_bin(x[i], bin_edges)
+        bins[i] = grftools.onedee.stats.find_bin(x[i], bin_edges)
         bins_np[i] = _find_bin_np(x[i], bin_edges)
 
     assert np.allclose(bins, bins_np)
 
     if timing:
         import timeit
-        namespace = {"cosmotools" : cosmotools, "np" : np ,"_find_bin_np" : _find_bin_np, "bin_edges" : bin_edges}
+        namespace = {"grftools" : grftools, "np" : np ,"_find_bin_np" : _find_bin_np, "bin_edges" : bin_edges}
         print("Timing find_bin")
-        t = timeit.repeat("cosmotools.onedee.stats.find_bin(np.random.rand(1).squeeze(), bin_edges)", 
+        t = timeit.repeat("grftools.onedee.stats.find_bin(np.random.rand(1).squeeze(), bin_edges)", 
                         repeat=3, number=n_sample, globals=namespace)
         t_np = timeit.repeat("_find_bin_np(np.random.rand(1).squeeze(), bin_edges)", 
                             repeat=3, number=n_sample, globals=namespace)
@@ -68,7 +68,7 @@ def test_bin_data(n_sample=1000, n_bin=10, seed=234, verbose=False, timing=False
     print("Test bin edges.")
     x = bin_edges
     y = np.random.rand(len(bin_edges))
-    binned, mean_x = cosmotools.onedee.stats.bin_data(x, y, bin_edges)
+    binned, mean_x = grftools.onedee.stats.bin_data(x, y, bin_edges)
     binned_np, mean_x_np = _bin_data_np(x, y, bin_edges)
 
     assert np.allclose(binned, binned_np)
@@ -78,7 +78,7 @@ def test_bin_data(n_sample=1000, n_bin=10, seed=234, verbose=False, timing=False
     if verbose: print("Test with random data.")
     x = np.random.rand(n_sample)
     y = np.random.rand(n_sample)
-    binned, mean_x = cosmotools.onedee.stats.bin_data(x, y, bin_edges)
+    binned, mean_x = grftools.onedee.stats.bin_data(x, y, bin_edges)
     binned_np, mean_x_np = _bin_data_np(x, y, bin_edges)
 
     assert np.allclose(binned, binned_np)
@@ -88,7 +88,7 @@ def test_bin_data(n_sample=1000, n_bin=10, seed=234, verbose=False, timing=False
     x = np.random.rand(n_sample)
     y = np.random.rand(n_sample)
     w = np.random.rand(n_sample)
-    binned, mean_x = cosmotools.onedee.stats.bin_data(x, y, bin_edges, weights=w)
+    binned, mean_x = grftools.onedee.stats.bin_data(x, y, bin_edges, weights=w)
     binned_np, mean_x_np = _bin_data_np(x, y, bin_edges, weights=w)
 
     assert np.allclose(binned, binned_np)
@@ -96,9 +96,9 @@ def test_bin_data(n_sample=1000, n_bin=10, seed=234, verbose=False, timing=False
 
     if timing:
         import timeit
-        namespace = {"cosmotools" : cosmotools, "np" : np, "_bin_data_np" : _bin_data_np, "x" : x, "y" : y, "bin_edges" : bin_edges}
+        namespace = {"grftools" : grftools, "np" : np, "_bin_data_np" : _bin_data_np, "x" : x, "y" : y, "bin_edges" : bin_edges}
         print("Timing bin_data")
-        t = timeit.repeat("cosmotools.onedee.stats.bin_data(x, y, bin_edges)", 
+        t = timeit.repeat("grftools.onedee.stats.bin_data(x, y, bin_edges)", 
                         repeat=3, number=n_sample, globals=namespace)
         t_np = timeit.repeat("_bin_data_np(x, y, bin_edges)", 
                             repeat=3, number=n_sample, globals=namespace)

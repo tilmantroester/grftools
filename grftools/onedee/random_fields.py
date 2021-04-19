@@ -28,9 +28,10 @@ def variance_gamma_distribution(x, n, rho, sigma1=1, sigma2=1):
 def variance_gamma_distribution_cdf(x, n, rho, sigma1=1, sigma2=1):
     """Computes the cdf of the variance-gamma distribution."""
 
-    integrand = lambda y: variance_gamma_distribution(y, n, rho, sigma1, sigma2)
-    if not isinstance(x, collections.Iterable):
-        x = [x,]
+    integrand = lambda y: variance_gamma_distribution(y, n, rho,
+                                                      sigma1, sigma2)
+    if not isinstance(x, collections.abc.Iterable):
+        x = [x]
     cdf = np.zeros(len(x))
     for i, y in enumerate(x):
         cdf[i] = scipy.integrate.quad(integrand, -np.inf, min(y, 0))[0]
@@ -41,7 +42,7 @@ def variance_gamma_distribution_cdf(x, n, rho, sigma1=1, sigma2=1):
 def variance_gamma_distribution_ppf(q, n, rho, sigma1=1, sigma2=1):
     """Computes the ppf of the variance-gamma distribution."""
 
-    if not isinstance(q, collections.Iterable):
+    if not isinstance(q, collections.abc.Iterable):
         q = [q,]
     ppf = np.zeros(len(q))
     for i in range(len(q)):

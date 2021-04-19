@@ -2,6 +2,7 @@ import os
 import numpy as np
 import scipy.interpolate
 
+
 def mkdirs(path):
     """Recursively create directories.
 
@@ -9,16 +10,17 @@ def mkdirs(path):
     """
     os.makedirs(path, exist_ok=True)
 
+
 def weighted_var(a, w):
     """Compute weighted variance.
-    
+
     Arguments
     ---------
     a : numpy.array
         Input array.
     w : numpy.array
         Weight array.
-        
+
     Returns
     -------
     var : float
@@ -29,11 +31,13 @@ def weighted_var(a, w):
     V2 = np.sum(w**2)
     return 1/(V1-V2/V1)*np.sum(w*(a-np.average(a, weights=w))**2)
 
-def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False, 
+
+def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False,
               bin_edges=None, weights=None, return_error_on_mean=True):
     """Bin array.
 
-    Either ``bin_edges`` or ``x_min``, ``x_max``, and ``n_bin`` need to be specified.
+    Either ``bin_edges`` or ``x_min``, ``x_max``, and ``n_bin`` need to be
+    specified.
 
     Arguments
     ---------
@@ -54,8 +58,8 @@ def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False,
     weights : numpy.array, optional
         Weights for weighting entries in ``array``. (default None).
     return_error_on_mean : bool, optional
-        Return the error on the mean of the bin instead of the standard deviation 
-        of its members. (default True).
+        Return the error on the mean of the bin instead of the standard
+        deviation of its members. (default True).
 
     Returns
     -------
@@ -64,22 +68,23 @@ def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False,
     mean_x : numpy.array
         Mean ``x`` in each bin.
     scatter : numpy.array
-        Standard deviation of ``array`` values in each bin. 
+        Standard deviation of ``array`` values in each bin.
         If ``return_error_on_mean == True`` returns error on the mean instead.
     """
-    
+
     if bin_edges is None:
         if logspaced:
-            bin_edges = np.logspace(np.log10(x_min), np.log10(x_max), n_bin+1, endpoint=True)
+            bin_edges = np.logspace(np.log10(x_min), np.log10(x_max),
+                                    n_bin+1, endpoint=True)
         else:
             bin_edges = np.linspace(x_min, x_max, n_bin+1, endpoint=True)
     else:
         n_bin = len(bin_edges)-1
-        
+
     binned_array = np.zeros(n_bin, dtype=array.dtype)
     mean_x = np.zeros(n_bin, dtype=array.dtype)
     scatter = np.zeros(n_bin, dtype=array.dtype)
-    
+
     w = np.ones_like(array) if weights is None else weights
 
     for i in range(n_bin):
@@ -96,7 +101,8 @@ def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False,
             binned_array[i] = np.average(array[M], weights=w[M])
             if np.count_nonzero(M) > 1:
                 if return_error_on_mean:
-                    scatter[i] = np.sqrt(weighted_var(array[M], w[M])/np.count_nonzero(M))
+                    scatter[i] = (np.sqrt(weighted_var(array[M], w[M])
+                                  / np.count_nonzero(M)))
                 else:
                     scatter[i] = np.sqrt(weighted_var(array[M], w[M]))
 
@@ -104,9 +110,10 @@ def bin_array(array, x, x_min=None, x_max=None, n_bin=None, logspaced=False,
 
     return binned_array, mean_x, scatter
 
+
 def rebin_2d(a, shape):
     """"Rebin a 2D array.
-    
+
     From https://stackoverflow.com/a/8090605
 
     Arguments
@@ -115,14 +122,15 @@ def rebin_2d(a, shape):
         Input array.
     shape : tuple
         Target shape.
-        
+
     Returns
     -------
     binned_array : numpy.array
         Binned 2D array with shape ``shape``.
     """
-    sh = shape[0],a.shape[0]//shape[0],shape[1],a.shape[1]//shape[1]
+    sh = shape[0], a.shape[0]//shape[0], shape[1], a.shape[1]//shape[1]
     return a.reshape(sh).mean(-1).mean(1)
+
 
 def correlation_coefficient(cov):
     """Computes correlation coefficients from a covariance matrix."""
@@ -134,6 +142,7 @@ def condition_number(M):
     """Computes condition number of a matrix."""
     u, s, v = np.linalg.svd(M)
     return np.max(s)/np.min(s)
+
 
 def format_value_pm_error(val, err=None, precision=1, width=3):
     """Prints pretty errors."""
@@ -151,25 +160,28 @@ def format_value_pm_error(val, err=None, precision=1, width=3):
         s += err_fmt.format(err=err, width=width, precision=precision)
     else:
         s += " "*(width+1)
-        
+
     if abs(e) > 1:
         s += " 10^{exp:d}".format(exp=e)
-        
+
     return s
 
+
 def interpolated_powerspectrum_from_file(filename):
-    """Creates callable that interpolates a tabulated power spectrum in log-space.
+    """Creates callable that interpolates a tabulated power spectrum in
+    log-space.
 
     Arguments
     ---------
     filename : str
-        Filename of the input power spectrum. Should have two columns: k and P(k).
+        Filename of the input power spectrum.
+        Should have two columns: k and P(k).
 
     Returns
     -------
     P(k) : callable
-        Function P(k) that interpolates the tabulated power spectrum in the file 
-        in log-space.
+        Function P(k) that interpolates the tabulated power spectrum in the
+        file in log-space.
     """
 
     k_grid, P_grid = np.loadtxt(filename, unpack=True)
@@ -180,7 +192,9 @@ def interpolated_powerspectrum_from_file(filename):
     else:
         P0 = 0
 
-    log_P_intp = scipy.interpolate.InterpolatedUnivariateSpline(np.log(k_grid), np.log(P_grid), k=1, ext=0)
+    log_P_intp = scipy.interpolate.InterpolatedUnivariateSpline(
+                                    np.log(k_grid), np.log(P_grid), k=1, ext=0)
+
     def P(k):
         Pofk = np.where(k > 0, np.exp(log_P_intp(np.log(k))), P0)
         return Pofk
